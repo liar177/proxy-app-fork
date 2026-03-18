@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ConfigProvider } from 'antd';
 import Layout from './components/Layout';
-import Home from './pages/Home';
-import Settings from './pages/Settings';
+import HomeList from './pages/HomeList';
+import Edit from './pages/Edit';
 import './App.css';
 
 function App() {
@@ -11,8 +11,8 @@ function App() {
       <Router>
         <Layout>
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route path="/" element={<HomeList />} />
+            <Route path="/edit" element={<Edit />} />
           </Routes>
         </Layout>
       </Router>

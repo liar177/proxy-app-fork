@@ -14,8 +14,8 @@ const AppLayout = ({ children }) => {
       label: <Link to="/">首页</Link>,
     },
     {
-      key: '/settings',
-      label: <Link to="/settings">设置</Link>,
+      key: '/edit',
+      label: <Link to="/edit">编辑</Link>,
     },
   ];
 
