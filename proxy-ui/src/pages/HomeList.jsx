@@ -19,7 +19,7 @@ import {
   EditOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
-
+import { useNavigate } from 'react-router-dom';
 const { Title } = Typography;
 const { Option } = Select;
 
@@ -40,6 +40,7 @@ const mockData = [
 ];
 
 const ProxyList = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState(mockData);
   const [loading, setLoading] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
@@ -221,6 +222,7 @@ const ProxyList = () => {
   // 编辑
   const handleEdit = (record) => {
     message.info(`编辑 ${record.name}`);
+    navigate(`/edit?id=${record.id}`);
   };
 
   // 删除
@@ -245,6 +247,7 @@ const ProxyList = () => {
   // 添加新项
   const handleAdd = () => {
     message.info('添加新代理');
+    navigate('/edit?id=');
   };
 
   // 搜索
