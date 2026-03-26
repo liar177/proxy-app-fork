@@ -29,14 +29,14 @@ function success(response) {
 function error(error) {
   const navigate = getGlobalNavigate();
   console.log('全局导航实例',navigate);
-  if (error.response && error.response.status === 401) {
+  if (error.response && (error.response.status === 401)) {
     // 使用全局导航实例进行跳转
 
     if (navigate) {
-      navigate("/login");
+      navigate("/");
     } else {
       // 如果导航实例还未初始化，使用原生跳转
-      window.location.href = '/login';
+      window.location.href = '/';
     }
   }
   console.log(error);
