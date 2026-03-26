@@ -18,6 +18,7 @@ import {
   SettingOutlined,
   EditOutlined,
   SearchOutlined,
+  PlayCircleOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 const { Title } = Typography;
@@ -124,7 +125,7 @@ const ProxyList = () => {
         <Space size="small">
           <Button
             type="text"
-            icon={<PoweroffOutlined />}
+            icon={<PlayCircleOutlined />}
             onClick={() => handleToggleStatus(record)}
             title={record.status === 'running' ? '停止' : '启动'}
           />
@@ -136,7 +137,7 @@ const ProxyList = () => {
           />
           <Button
             type="text"
-            icon={<SettingOutlined />}
+            icon={<PoweroffOutlined />}
             onClick={() => handleSettings(record)}
             title="设置"
           />

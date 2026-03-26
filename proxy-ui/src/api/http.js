@@ -1,9 +1,6 @@
 import axios from "axios";
-import { message } from "antd";
-// import history from "src/history";
-import { useGlobalNavigate } from "src/components/NavigateComponent";
-
-const navigate = useGlobalNavigate();
+import { message } from 'antd';
+import { getGlobalNavigate } from "../components/NavigateComponent";
 
 const http = axios.create({
   baseURL: "/api/",
@@ -16,6 +13,8 @@ const http = axios.create({
 http.interceptors.response.use(success, error);
 
 function success(response) {
+  const navigate = getGlobalNavigate();
+  console.log('全局导航实例-success',navigate);
   const result = response.data;
   const config = response.config;
   const { code, msg } = result;
@@ -27,9 +26,18 @@ function success(response) {
   return result;
 }
 
-function error(error, config) {
-  if (error.response.status === 401) {
-    navigate("/login");
+function error(error) {
+  const navigate = getGlobalNavigate();
+  console.log('全局导航实例',navigate);
+  if (error.response && error.response.status === 401) {
+    // 使用全局导航实例进行跳转
+
+    if (navigate) {
+      navigate("/login");
+    } else {
+      // 如果导航实例还未初始化，使用原生跳转
+      window.location.href = '/login';
+    }
   }
   console.log(error);
   return Promise.reject(error);

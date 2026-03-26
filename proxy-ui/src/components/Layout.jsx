@@ -18,10 +18,10 @@ const AppLayout = ({ children }) => {
       key: '/',
       label: <Link to="/">首页</Link>,
     },
-    {
-      key: '/edit',
-      label: <Link to="/edit">编辑</Link>,
-    },
+    // {
+    //   key: '/edit',
+    //   label: <Link to="/edit">编辑</Link>,
+    // },
   ];
 
   const languageMenu = {
