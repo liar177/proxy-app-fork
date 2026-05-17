@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Card, 
   Form, 
@@ -34,6 +34,8 @@ const Edit = () => {
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [portLoading, setPortLoading] = useState(false);
+  const [portEditable, setPortEditable] = useState(false);
+  const isButtonClick = useRef(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [subConfigs, setSubConfigs] = useState([]);
   const [currentSubConfigIndex, setCurrentSubConfigIndex] = useState(null);
@@ -99,13 +101,41 @@ const Edit = () => {
         form.setFieldsValue({ port: response.data.port });
         message.success('端口获取成功');
       } else {
-        message.error('端口获取失败');
+        message.warning('端口获取失败，使用默认端口 8000');
+        form.setFieldsValue({ port: 8000 });
       }
     } catch (error) {
-      message.error('端口获取失败，请重试');
+      message.warning('端口获取失败，使用默认端口 8000');
+      form.setFieldsValue({ port: 8000 });
       console.error(error);
     } finally {
       setPortLoading(false);
+    }
+  };
+
+  // 切换端口编辑状态
+  const togglePortEditable = () => {
+    // 设置标志位，表示是通过按钮点击触发的
+    isButtonClick.current = true;
+    // 直接切换状态
+    setPortEditable((prev) => !prev);
+    console.log('togglePortEditable:', portEditable);
+    // 清除标志位
+    setTimeout(() => {
+      isButtonClick.current = false;
+    }, 100);
+  };
+
+  // 端口输入框失去焦点时恢复不可编辑状态
+  const handlePortBlur = () => {
+    // 如果是按钮点击触发的失焦，不执行任何操作
+    console.log('handlePortBlur:', isButtonClick.current);
+    if (isButtonClick.current) {
+      return;
+    }
+    // 只有在编辑状态下才恢复不可编辑
+    if (portEditable) {
+      setPortEditable(false);
     }
   };
 
@@ -249,17 +279,27 @@ const Edit = () => {
                 >
                   <Input
                     placeholder="自动生成端口"
-                    readOnly
+                    readOnly={!portEditable}
+                    onBlur={handlePortBlur}
                     suffix={
-                      <Button
-                        type="link"
-                        icon={<ReloadOutlined />}
-                        onClick={fetchPort}
-                        loading={portLoading}
-                        style={{ padding: 0 }}
-                      >
-                        重新获取端口
-                      </Button>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <Button
+                          type="link"
+                          icon={<ReloadOutlined />}
+                          onClick={fetchPort}
+                          loading={portLoading}
+                          style={{ padding: 0 }}
+                        >
+                          重新获取端口
+                        </Button>
+                        <Button
+                          type="link"
+                          onMouseDown={togglePortEditable}
+                          style={{ padding: 0 }}
+                        >
+                          {portEditable ? '完成修改' : '手动修改端口'}
+                        </Button>
+                      </div>
                     }
                   />
                 </Form.Item>

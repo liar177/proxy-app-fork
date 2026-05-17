@@ -53,10 +53,7 @@ const AppLayout = ({ children }) => {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <span style={{ color: '#e6212a', fontSize: '20px', fontWeight: 'bold' }}>
-              HIKVISION
-            </span>
-            <span style={{ color: '#666', fontSize: '16px', marginLeft: '8px' }}>
+            <span style={{ color: '#1890ff', fontSize: '20px', fontWeight: 'bold' }}>
               Easy Proxy
             </span>
           </div>
