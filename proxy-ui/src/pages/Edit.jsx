@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Card, 
-  Form, 
-  Input, 
-  Button, 
-  Select, 
-  Switch, 
-  message, 
-  Space, 
-  Divider, 
+import {
+  Card,
+  Form,
+  Input,
+  Button,
+  Select,
+  Switch,
+  message,
+  Space,
+  Divider,
   Modal,
   Spin,
   Typography,
@@ -17,11 +17,11 @@ import {
 } from 'antd';
 import { PlusOutlined, DeleteOutlined, ReloadOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { 
-  createProject, 
-  modifyProject, 
-  requestProjectPort, 
-  getProjectInfo 
+import {
+  createProject,
+  modifyProject,
+  requestProjectPort,
+  getProjectInfo
 } from '../api/project';
 
 const { TextArea } = Input;
@@ -42,8 +42,39 @@ const Edit = () => {
   const [jsonModalVisible, setJsonModalVisible] = useState(false);
   const [jsonContent, setJsonContent] = useState('');
   const [currentEditIndex, setCurrentEditIndex] = useState(null);
+  const [selectedConfigIndex, setSelectedConfigIndex] = useState(0);
+  const [editingJson, setEditingJson] = useState('');
 
-  // 判断是添加还是编辑模式
+  const defaultJsonTemplate = `{
+  "targetAddress": "https://example.com",
+  "headers": {
+    "cookie": ""
+  }
+}`;
+
+  useEffect(() => {
+    if (subConfigs.length > 0 && selectedConfigIndex < subConfigs.length) {
+      setEditingJson(JSON.stringify(subConfigs[selectedConfigIndex], null, 2));
+    } else {
+      setEditingJson(defaultJsonTemplate);
+    }
+  }, [subConfigs, selectedConfigIndex]);
+
+  const handleJsonChange = (value) => {
+    setEditingJson(value);
+    try {
+      const parsed = JSON.parse(value);
+      const newConfigs = [...subConfigs];
+      newConfigs[selectedConfigIndex] = parsed;
+      setSubConfigs(newConfigs);
+    } catch (e) {
+    }
+  };
+
+  const handleConfigSelect = (index) => {
+    setSelectedConfigIndex(index);
+  };
+
   useEffect(() => {
     const projectId = searchParams.get('id');
     if (projectId) {
@@ -55,7 +86,6 @@ const Edit = () => {
     }
   }, [searchParams]);
 
-  // 初始化新项目
   const initializeNewProject = () => {
     form.setFieldsValue({
       name: '',
@@ -63,11 +93,9 @@ const Edit = () => {
       description: '',
     });
     setSubConfigs([]);
-    // 自动获取端口
     fetchPort();
   };
 
-  // 加载项目数据
   const loadProjectData = async (projectId) => {
     try {
       setLoading(true);
@@ -79,7 +107,6 @@ const Edit = () => {
           port: projectData.port,
           description: projectData.description || '',
         });
-        // 解析子配置
         if (projectData.configs) {
           setSubConfigs(projectData.configs);
         }
@@ -92,7 +119,6 @@ const Edit = () => {
     }
   };
 
-  // 获取端口
   const fetchPort = async () => {
     try {
       setPortLoading(true);
@@ -113,33 +139,23 @@ const Edit = () => {
     }
   };
 
-  // 切换端口编辑状态
   const togglePortEditable = () => {
-    // 设置标志位，表示是通过按钮点击触发的
     isButtonClick.current = true;
-    // 直接切换状态
     setPortEditable((prev) => !prev);
-    console.log('togglePortEditable:', portEditable);
-    // 清除标志位
     setTimeout(() => {
       isButtonClick.current = false;
     }, 100);
   };
 
-  // 端口输入框失去焦点时恢复不可编辑状态
   const handlePortBlur = () => {
-    // 如果是按钮点击触发的失焦，不执行任何操作
-    console.log('handlePortBlur:', isButtonClick.current);
     if (isButtonClick.current) {
       return;
     }
-    // 只有在编辑状态下才恢复不可编辑
     if (portEditable) {
       setPortEditable(false);
     }
   };
 
-  // 添加子配置
   const addSubConfig = () => {
     const newConfig = {
       targetAddress: '',
@@ -148,9 +164,9 @@ const Edit = () => {
       }
     };
     setSubConfigs([...subConfigs, newConfig]);
+    setSelectedConfigIndex(subConfigs.length);
   };
 
-  // 删除子配置
   const deleteSubConfig = (index) => {
     Modal.confirm({
       title: '确认删除',
@@ -160,11 +176,13 @@ const Edit = () => {
       onOk: () => {
         const newConfigs = subConfigs.filter((_, i) => i !== index);
         setSubConfigs(newConfigs);
+        if (selectedConfigIndex >= newConfigs.length && newConfigs.length > 0) {
+          setSelectedConfigIndex(newConfigs.length - 1);
+        }
       }
     });
   };
 
-  // 打开 JSON 编辑器
   const openJsonEditor = (index) => {
     setCurrentEditIndex(index);
     const config = subConfigs[index];
@@ -173,7 +191,6 @@ const Edit = () => {
     setJsonModalVisible(true);
   };
 
-  // 保存 JSON 内容
   const saveJsonContent = () => {
     try {
       const parsedJson = JSON.parse(jsonContent);
@@ -187,12 +204,10 @@ const Edit = () => {
     }
   };
 
-  // 表单提交
   const onFinish = async (values) => {
     try {
       setLoading(true);
-      
-      // 构建提交数据
+
       const submitData = {
         name: values.name,
         port: Number(values.port),
@@ -222,40 +237,39 @@ const Edit = () => {
     }
   };
 
-  // 返回列表
   const handleBack = () => {
     navigate('/');
   };
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div style={{ padding: '24px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
       <Spin spinning={loading}>
-        {/* 页面头部 */}
-        <div style={{ marginBottom: '24px' }}>
-          <Button 
-            icon={<ArrowLeftOutlined />} 
+        <div style={{ marginBottom: '16px' }}>
+          <Button
+            icon={<ArrowLeftOutlined />}
             onClick={handleBack}
-            style={{ marginBottom: '16px' }}
+            style={{ marginBottom: '12px' }}
           >
             返回列表
           </Button>
-          <Title level={3} style={{ margin: '0 0 16px 0' }}>
+          <Title level={3} style={{ margin: 0 }}>
             {isEditMode ? '编辑代理配置' : '新建代理配置'}
           </Title>
         </div>
 
-        {/* 核心配置信息模块 */}
-        <Card 
-          title="核心配置信息"
-          style={{ marginBottom: '24px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }}
-        >
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={onFinish}
-          >
-            <Row gutter={24}>
-              <Col xs={24} sm={24} md={12}>
+        <div style={{ display: 'flex', gap: '16px', flex: 1, minHeight: 0 }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <Card
+              title="核心配置信息"
+              style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }}
+              styles={{ body: { flex: 1 } }}
+            >
+              <Form
+                form={form}
+                layout="vertical"
+                onFinish={onFinish}
+                style={{ height: '100%' }}
+              >
                 <Form.Item
                   label="配置名称"
                   name="name"
@@ -266,9 +280,7 @@ const Edit = () => {
                 >
                   <Input placeholder="请输入配置名称" />
                 </Form.Item>
-              </Col>
 
-              <Col xs={24} sm={24} md={12}>
                 <Form.Item
                   label="本地端口"
                   name="port"
@@ -303,116 +315,102 @@ const Edit = () => {
                     }
                   />
                 </Form.Item>
-              </Col>
-            </Row>
 
-            <Form.Item
-              label="配置描述"
-              name="description"
-              rules={[
-                { max: 500, message: '配置描述不能超过500个字符' }
-              ]}
-            >
-              <TextArea
-                rows={4}
-                placeholder="请输入配置描述（可选）"
-                maxLength={500}
-                showCount
-              />
-            </Form.Item>
-          </Form>
-        </Card>
-
-        {/* 子配置管理模块 */}
-        <Card
-          title={
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>子配置管理</span>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={addSubConfig}
-                size="small"
-              >
-                添加子配置
-              </Button>
-            </div>
-          }
-          style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }}
-        >
-          {subConfigs.length === 0 ? (
-            <div style={{ 
-              textAlign: 'center', 
-              padding: '40px 0',
-              color: 'rgba(0, 0, 0, 0.45)' 
-            }}>
-              暂无子配置，点击右上角"添加子配置"按钮添加
-            </div>
-          ) : (
-            <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
-              {subConfigs.map((config, index) => (
-                <Card
-                  key={index}
-                  size="small"
-                  style={{ marginBottom: '16px', backgroundColor: '#fafafa' }}
-                  title={
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Text strong>子配置 {index + 1}</Text>
-                      <Space>
-                        <Button
-                          type="link"
-                          size="small"
-                          onClick={() => openJsonEditor(index)}
-                        >
-                          编辑 JSON
-                        </Button>
-                        <Button
-                          type="link"
-                          danger
-                          size="small"
-                          icon={<DeleteOutlined />}
-                          onClick={() => deleteSubConfig(index)}
-                        >
-                          删除
-                        </Button>
-                      </Space>
-                    </div>
-                  }
+                <Form.Item
+                  label="配置描述"
+                  name="description"
+                  rules={[
+                    { max: 500, message: '配置描述不能超过500个字符' }
+                  ]}
                 >
-                  <Row gutter={16}>
-                    <Col span={24}>
-                      <div style={{ marginBottom: '8px' }}>
-                        <Text type="secondary">目标地址：</Text>
-                        <Text code>{config.targetAddress || '未设置'}</Text>
-                      </div>
-                    </Col>
-                    <Col span={24}>
-                      <div>
-                        <Text type="secondary">请求头：</Text>
-                        <pre style={{ 
-                          backgroundColor: '#f5f5f5', 
-                          padding: '8px', 
-                          borderRadius: '4px',
-                          maxHeight: '100px',
-                          overflow: 'auto',
-                          fontSize: '12px'
-                        }}>
-                          {JSON.stringify(config.headers, null, 2)}
-                        </pre>
-                      </div>
-                    </Col>
-                  </Row>
-                </Card>
-              ))}
-            </div>
-          )}
-        </Card>
+                  <TextArea
+                    rows={3}
+                    placeholder="请输入配置描述（可选）"
+                    maxLength={500}
+                    showCount
+                  />
+                </Form.Item>
+              </Form>
+            </Card>
 
-        {/* 底部操作按钮 */}
-        <div style={{ 
-          marginTop: '24px', 
+            <Card
+              title="子配置管理"
+              extra={
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={addSubConfig}
+                  size="small"
+                >
+                  添加
+                </Button>
+              }
+              style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }}
+            >
+              <Select
+                placeholder="选择要编辑的子配置"
+                value={subConfigs.length > 0 ? selectedConfigIndex : undefined}
+                onChange={handleConfigSelect}
+                style={{ width: '100%', marginBottom: '12px' }}
+                disabled={subConfigs.length === 0}
+              >
+                {subConfigs.map((config, index) => (
+                  <Option key={index} value={index}>
+                    子配置 {index + 1}：{config.targetAddress || '未设置'}
+                  </Option>
+                ))}
+              </Select>
+              {subConfigs.length === 0 && (
+                <div style={{ textAlign: 'center', color: 'rgba(0, 0, 0, 0.45)', padding: '20px 0' }}>
+                  暂无子配置，点击"添加"按钮添加
+                </div>
+              )}
+            </Card>
+          </div>
+
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <Card
+              title={subConfigs.length > 0 ? `子配置 ${selectedConfigIndex + 1} JSON` : '子配置 JSON'}
+              extra={
+                subConfigs.length > 0 && (
+                  <Button
+                    type="link"
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => deleteSubConfig(selectedConfigIndex)}
+                  >
+                    删除
+                  </Button>
+                )
+              }
+              style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)', height: '100%' }}
+              styles={{ body: { height: 'calc(100% - 57px)', display: 'flex', flexDirection: 'column' } }}
+            >
+              {subConfigs.length > 0 ? (
+                <TextArea
+                  value={editingJson}
+                  onChange={(e) => handleJsonChange(e.target.value)}
+                  style={{
+                    flex: 1,
+                    fontFamily: 'monospace',
+                    fontSize: '14px',
+                    lineHeight: '1.5',
+                    resize: 'none'
+                  }}
+                />
+              ) : (
+                <div style={{ textAlign: 'center', color: 'rgba(0, 0, 0, 0.45)', padding: '40px 0' }}>
+                  请先添加子配置
+                </div>
+              )}
+            </Card>
+          </div>
+        </div>
+
+        <div style={{
+          marginTop: '16px',
           textAlign: 'center',
-          padding: '16px 0',
+          padding: '12px 0',
           borderTop: '1px solid #e8e8e8'
         }}>
           <Space size="middle">
@@ -431,7 +429,6 @@ const Edit = () => {
         </div>
       </Spin>
 
-      {/* JSON 编辑器弹窗 */}
       <Modal
         title={`编辑子配置 ${currentEditIndex !== null ? currentEditIndex + 1 : ''}`}
         open={jsonModalVisible}
@@ -450,7 +447,7 @@ const Edit = () => {
           value={jsonContent}
           onChange={(e) => setJsonContent(e.target.value)}
           rows={20}
-          style={{ 
+          style={{
             fontFamily: 'monospace',
             fontSize: '14px',
             lineHeight: '1.5'
