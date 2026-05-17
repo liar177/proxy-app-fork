@@ -20,42 +20,33 @@ import {
   SearchOutlined,
   PlayCircleOutlined,
 } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import {
+  getProjectlist,
+  deleteProject,
+  startAction,
+  stopAction,
+  restartAction,
+} from '../api/project';
+
 const { Title } = Typography;
 const { Option } = Select;
 
-// 模拟数据
-const mockData = [
-  { id: 1, name: 'eema', config: '50', address: 'http://localhost:1880', destination: 'https://10.42.2.50', status: 'running' },
-  { id: 2, name: '现场问题排查-rmsm', config: '100', address: 'http://localhost:1301', destination: 'https://10.3.190.100/', status: 'stopped' },
-  { id: 3, name: 'ctm02zptr', config: '22.10.102.104', address: 'http://localhost:20245', destination: 'https://22.10.102.104/', status: 'running' },
-  { id: 4, name: '和田定制', config: '10.19.134.65', address: 'http://localhost:1040', destination: 'https://10.19.134.65/', status: 'stopped' },
-  { id: 5, name: 'ermw-dual', config: '218.202.209.154', address: 'http://localhost:35196', destination: 'https://218.202.209.154:1443/', status: 'running' },
-  { id: 6, name: 'pwrr', config: '曙光现场', address: 'http://localhost:53997', destination: 'https://60.171.157.198:31443', status: 'running' },
-  { id: 7, name: 'imowas', config: '中宇现场 https://125.46...', address: 'http://localhost:34542', destination: 'https://125.46.21.237:7443/', status: 'running' },
-  { id: 8, name: 'wad', config: 'http://10.19.134.36/', address: 'http://localhost:54724', destination: 'http://10.19.134.36/', status: 'stopped' },
-  { id: 9, name: 'gais', config: 'http://10.19.134.36/', address: 'http://localhost:19509', destination: 'http://10.19.134.36/', status: 'stopped' },
-  { id: 10, name: 'le-config', config: '87', address: 'http://localhost:56209', destination: 'https://10.19.189.87', status: 'stopped' },
-  { id: 11, name: 'mvpl', config: '47', address: 'http://localhost:46493', destination: 'http://10.19.186.47/', status: 'stopped' },
-  { id: 12, name: 'oas', config: '15', address: 'http://localhost:47274', destination: 'https://10.42.2.15', status: 'stopped' },
-];
-
 const ProxyList = () => {
   const navigate = useNavigate();
-  const [data, setData] = useState(mockData);
+  const location = useLocation();
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [configFilter, setConfigFilter] = useState('');
 
-  // 状态映射
   const statusMap = {
     running: { text: '已启动', color: 'green' },
     stopped: { text: '已停止', color: 'red' },
     reloading: { text: '重载中', color: 'orange' },
   };
 
-  // 表格列定义
   const columns = [
     {
       title: '名称',
@@ -111,9 +102,9 @@ const ProxyList = () => {
       key: 'status',
       width: 100,
       render: (status) => (
-        <span style={{ color: statusMap[status]?.color || '#fff' }}>
+        <Tag color={statusMap[status]?.color || '#fff'}>
           {statusMap[status]?.text || '未知'}
-        </span>
+        </Tag>
       ),
     },
     {
@@ -180,59 +171,106 @@ const ProxyList = () => {
     },
   ];
 
-  // 处理配置变更
+  const loadProjectList = async (searchName = searchText) => {
+    try {
+      setLoading(true);
+      const response = await getProjectlist({
+        name: searchName || undefined,
+      });
+      if (response.code === 0 && response.data) {
+        setData(response.data.list || response.data);
+      }
+    } catch (error) {
+      message.error('加载项目列表失败');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadProjectList();
+  }, [location.pathname]);
+
   const handleConfigChange = (value) => {
     message.success('配置已更新');
   };
 
-  // 切换状态
-  const handleToggleStatus = (record) => {
+  const handleToggleStatus = async (record) => {
+    const action = record.status === 'running' ? stopAction : startAction;
     const newStatus = record.status === 'running' ? 'stopped' : 'running';
-    setData((prevData) =>
-      prevData.map((item) =>
-        item.id === record.id ? { ...item, status: newStatus } : item
-      )
-    );
-    message.success(
-      `${record.name} 已${newStatus === 'running' ? '启动' : '停止'}`
-    );
+
+    try {
+      setLoading(true);
+      const response = await action({ id: record.id });
+      if (response.code === 0) {
+        setData((prevData) =>
+          prevData.map((item) =>
+            item.id === record.id ? { ...item, status: newStatus } : item
+          )
+        );
+        message.success(`${record.name} 已${newStatus === 'running' ? '启动' : '停止'}`);
+      }
+    } catch (error) {
+      message.error(`操作失败`);
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // 重载
-  const handleReload = (record) => {
-    setData((prevData) =>
-      prevData.map((item) =>
-        item.id === record.id ? { ...item, status: 'reloading' } : item
-      )
-    );
-    message.loading(`${record.name} 正在重载...`, 1.5, () => {
+  const handleReload = async (record) => {
+    try {
+      setData((prevData) =>
+        prevData.map((item) =>
+          item.id === record.id ? { ...item, status: 'reloading' } : item
+        )
+      );
+
+      const response = await restartAction({ id: record.id });
+      if (response.code === 0) {
+        setData((prevData) =>
+          prevData.map((item) =>
+            item.id === record.id ? { ...item, status: 'running' } : item
+          )
+        );
+        message.success(`${record.name} 重载成功`);
+      }
+    } catch (error) {
+      message.error('重载失败');
+      console.error(error);
       setData((prevData) =>
         prevData.map((item) =>
           item.id === record.id ? { ...item, status: 'running' } : item
         )
       );
-      message.success(`${record.name} 重载成功`);
-    });
+    }
   };
 
-  // 设置
   const handleSettings = (record) => {
     message.info(`设置 ${record.name}`);
   };
 
-  // 编辑
   const handleEdit = (record) => {
-    message.info(`编辑 ${record.name}`);
     navigate(`/edit?id=${record.id}`);
   };
 
-  // 删除
-  const handleDelete = (id) => {
-    setData((prevData) => prevData.filter((item) => item.id !== id));
-    message.success('删除成功');
+  const handleDelete = async (id) => {
+    try {
+      setLoading(true);
+      const response = await deleteProject({ id });
+      if (response.code === 0) {
+        setData((prevData) => prevData.filter((item) => item.id !== id));
+        message.success('删除成功');
+      }
+    } catch (error) {
+      message.error('删除失败');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // 批量删除
   const handleBatchDelete = () => {
     if (selectedRowKeys.length === 0) {
       message.warning('请选择要删除的项目');
@@ -245,18 +283,14 @@ const ProxyList = () => {
     message.success(`已删除 ${selectedRowKeys.length} 项`);
   };
 
-  // 添加新项
   const handleAdd = () => {
-    message.info('添加新代理');
-    navigate('/edit?id=');
+    navigate('/edit');
   };
 
-  // 搜索
   const handleSearch = () => {
-    message.info(`搜索：${searchText}`);
+    loadProjectList();
   };
 
-  // 表格行选择配置
   const rowSelection = {
     selectedRowKeys,
     onChange: (newSelectedRowKeys) => {
@@ -266,7 +300,6 @@ const ProxyList = () => {
 
   return (
     <div className="proxy-list-container">
-      {/* 页面头部 */}
       <div
         style={{
           backgroundColor: '#fff',
@@ -307,7 +340,6 @@ const ProxyList = () => {
           </Space>
         </div>
 
-        {/* 搜索区域 */}
         <div
           style={{
             display: 'flex',
@@ -321,6 +353,10 @@ const ProxyList = () => {
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             onPressEnter={handleSearch}
+            onClear={() => {
+              setSearchText('');
+              loadProjectList('');
+            }}
             style={{ width: 250 }}
             allowClear
           />
@@ -338,7 +374,6 @@ const ProxyList = () => {
         </div>
       </div>
 
-      {/* 表格区域 */}
       <div
         style={{
           backgroundColor: '#fff',

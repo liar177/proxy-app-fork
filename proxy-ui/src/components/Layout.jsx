@@ -6,6 +6,7 @@ import {
   InfoCircleOutlined,
   DownOutlined
 } from '@ant-design/icons';
+import MockToggle from './MockToggle';
 
 const { Header, Content } = AntLayout;
 
@@ -18,10 +19,6 @@ const AppLayout = ({ children }) => {
       key: '/',
       label: <Link to="/">首页</Link>,
     },
-    // {
-    //   key: '/edit',
-    //   label: <Link to="/edit">编辑</Link>,
-    // },
   ];
 
   const languageMenu = {
@@ -70,6 +67,7 @@ const AppLayout = ({ children }) => {
           />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <MockToggle />
           <Dropdown menu={languageMenu}>
             <a
               href="#"

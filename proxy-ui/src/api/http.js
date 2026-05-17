@@ -1,6 +1,8 @@
 import axios from "axios";
 import { message } from 'antd';
 import { getGlobalNavigate } from "../components/NavigateComponent";
+import { mockConfig } from "../mock/mockConfig";
+import { handleMockRequest } from "../mock/mockApi";
 
 const http = axios.create({
   baseURL: "/api/",
@@ -10,37 +12,64 @@ const http = axios.create({
   successNotify: true,
 });
 
-http.interceptors.response.use(success, error);
+http.interceptors.request.use(async (config) => {
+  if (mockConfig.getMockMode()) {
+    const url = config.url?.replace(/^\/api\//, '') || '';
+    const params = config.data || {};
+    
+    console.log(`[Mock Mode] Intercepted request: ${url}`, params);
+    
+    const mockResponse = await handleMockRequest(url, params);
+    console.log(`[Mock Mode] Mock response:`, mockResponse);
+    
+    return Promise.reject({
+      isMock: true,
+      mockResponse: mockResponse,
+      originalConfig: config,
+    });
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
 
-function success(response) {
-  const navigate = getGlobalNavigate();
-  console.log('全局导航实例-success',navigate);
-  const result = response.data;
+http.interceptors.response.use((response) => {
   const config = response.config;
+  const result = response.data;
   const { code, msg } = result;
+  
   if (code === 0) {
-    msg && config.successNotify && message.success(msg);
+    msg && config?.successNotify !== false && message.success(msg);
   } else {
-    msg && config.errorNotify && message.error(msg);
+    msg && config?.errorNotify !== false && message.error(msg);
   }
   return result;
-}
+}, (error) => {
+  if (error.isMock) {
+    console.log('[Mock Mode] Handling mock response from error handler');
+    
+    const { code, msg } = error.mockResponse;
+    const originalConfig = error.originalConfig || {};
+    
+    if (code === 0) {
+      msg && originalConfig?.successNotify !== false && message.success(msg);
+    } else {
+      msg && originalConfig?.errorNotify !== false && message.error(msg);
+    }
+    
+    return Promise.resolve(error.mockResponse);
+  }
 
-function error(error) {
   const navigate = getGlobalNavigate();
-  console.log('全局导航实例',navigate);
   if (error.response && (error.response.status === 401)) {
-    // 使用全局导航实例进行跳转
-
     if (navigate) {
       navigate("/");
     } else {
-      // 如果导航实例还未初始化，使用原生跳转
       window.location.href = '/';
     }
   }
-  console.log(error);
+  console.error('[HTTP Error]', error);
   return Promise.reject(error);
-}
+});
 
 export default http;

@@ -224,10 +224,7 @@ const Edit = () => {
       }
 
       if (response.code === 0) {
-        message.success(isEditMode ? '修改成功' : '创建成功');
         navigate('/');
-      } else {
-        message.error(response.msg || '操作失败');
       }
     } catch (error) {
       message.error('操作失败，请重试');
