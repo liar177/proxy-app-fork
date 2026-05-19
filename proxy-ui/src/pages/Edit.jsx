@@ -99,7 +99,7 @@ const Edit = () => {
   const loadProjectData = async (projectId) => {
     try {
       setLoading(true);
-      const response = await getProjectInfo({ id: projectId });
+      const response = await getProjectInfo({ id: Number(projectId) });
       if (response.code === 0 && response.data) {
         const projectData = response.data;
         form.setFieldsValue({
@@ -218,7 +218,7 @@ const Edit = () => {
       let response;
       if (isEditMode) {
         const projectId = searchParams.get('id');
-        response = await modifyProject({ ...submitData, id: projectId });
+        response = await modifyProject({ ...submitData, id: Number(projectId) });
       } else {
         response = await createProject(submitData);
       }
