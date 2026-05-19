@@ -1,0 +1,46 @@
+{
+  "projects": [
+    {
+      "name": "测试添加1",
+      "port": 57475,
+      "description": "这是一条配置测试1111",
+      "destination": "11111111111111",
+      "config": "这是一条配置测试1111",
+      "configs": [
+        {
+          "targetAddress": "11111111111111",
+          "headers": {
+            "cookie": "2222222222222222222222222222"
+          }
+        },
+        {
+          "targetAddress": "333333",
+          "headers": {
+            "cookie": "444444444444444444"
+          }
+        }
+      ],
+      "address": "http://localhost:57475",
+      "status": "stopped",
+      "id": 1
+    },
+    {
+      "name": "测试2",
+      "port": 20927,
+      "description": "这是一条描述1223232323",
+      "destination": "sdfsdf",
+      "config": "这是一条描述1223232323",
+      "configs": [
+        {
+          "targetAddress": "sdfsdf",
+          "headers": {
+            "cookie": "777777777777777777777777"
+          }
+        }
+      ],
+      "address": "http://localhost:20927",
+      "status": "running",
+      "id": 2
+    }
+  ]
+}

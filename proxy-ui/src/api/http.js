@@ -5,7 +5,7 @@ import { mockConfig } from "../mock/mockConfig";
 import { handleMockRequest } from "../mock/mockApi";
 
 const http = axios.create({
-  baseURL: "/api/",
+  baseURL: "/api-proxy/",
   withCredentials: true,
   timeout: 30000,
   errorNotify: true,
@@ -14,7 +14,7 @@ const http = axios.create({
 
 http.interceptors.request.use(async (config) => {
   if (mockConfig.getMockMode()) {
-    const url = config.url?.replace(/^\/api\//, '') || '';
+    const url = config.url?.replace(/^\/api-proxy\//, '') || '';
     const params = config.data || {};
     
     console.log(`[Mock Mode] Intercepted request: ${url}`, params);
