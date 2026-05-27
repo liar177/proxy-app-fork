@@ -3,9 +3,10 @@ import { Switch, Tooltip, Tag } from 'antd';
 import { mockConfig } from '../mock/mockConfig';
 
 const MockToggle = () => {
-  const [mockMode, setMockMode] = useState(mockConfig.getMockMode());
+  const [mockMode, setMockMode] = useState(() => mockConfig?.getMockMode?.() ?? false);
 
   useEffect(() => {
+    if (!mockConfig?.addListener) return;
     const unsubscribe = mockConfig.addListener((newMode) => {
       setMockMode(newMode);
     });
@@ -13,6 +14,7 @@ const MockToggle = () => {
   }, []);
 
   const handleChange = (checked) => {
+    if (!mockConfig?.setMockMode) return;
     mockConfig.setMockMode(checked);
     setMockMode(checked);
   };

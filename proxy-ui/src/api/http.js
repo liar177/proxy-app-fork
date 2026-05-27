@@ -13,7 +13,7 @@ const http = axios.create({
 });
 
 http.interceptors.request.use(async (config) => {
-  if (mockConfig.getMockMode()) {
+  if (mockConfig?.getMockMode?.()) {
     const url = config.url?.replace(/^\/api-proxy\//, '') || '';
     const params = config.data || {};
     
