@@ -1,46 +1,25 @@
 {
   "projects": [
     {
-      "name": "测试添加22222222222",
-      "port": 57475,
-      "description": "这是一条配置测试22222222222",
-      "destination": "11111111111111",
-      "config": "这是一条配置测试1111",
+      "name": "TodoProxyTest",
+      "port": 8899,
+      "description": "1111111111111测试",
+      "destination": "http://localhost:3001",
+      "config": "????????",
       "configs": [
         {
-          "targetAddress": "11111111111111",
-          "headers": {
-            "cookie": "2222222222222222222222222222"
-          }
+          "targetAddress": "http://localhost:3001"
         },
         {
-          "targetAddress": "333333",
+          "targetAddress": "http://localhost:3003/",
           "headers": {
-            "cookie": "444444444444444444"
+            "cookie": ""
           }
         }
       ],
-      "address": "http://localhost:57475",
-      "status": "stopped",
-      "id": 1
-    },
-    {
-      "name": "测试2",
-      "port": 20927,
-      "description": "这是一条描述1223232323",
-      "destination": "sdfsdf",
-      "config": "这是一条描述1223232323",
-      "configs": [
-        {
-          "targetAddress": "sdfsdf",
-          "headers": {
-            "cookie": "777777777777777777777777"
-          }
-        }
-      ],
-      "address": "http://localhost:20927",
+      "address": "http://localhost:8899",
       "status": "running",
-      "id": 2
+      "id": 1
     }
   ]
 }

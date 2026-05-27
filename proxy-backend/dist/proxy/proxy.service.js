@@ -47,42 +47,80 @@ const common_1 = require("@nestjs/common");
 const http = __importStar(require("http"));
 const http_proxy_middleware_1 = require("http-proxy-middleware");
 const express_1 = __importDefault(require("express"));
+const url = __importStar(require("url"));
 let ProxyService = class ProxyService {
     constructor() {
         this.proxyServers = new Map();
     }
     async startProxy(project) {
         if (this.proxyServers.has(project.id)) {
+            console.log(`Proxy server already running for project ${project.id}`);
             return false;
         }
+        const targetUrl = project.destination;
+        if (!targetUrl || !targetUrl.startsWith('http')) {
+            console.error('Invalid destination URL:', targetUrl);
+            return false;
+        }
+        const parsedUrl = url.parse(targetUrl);
+        const targetOrigin = `${parsedUrl.protocol}//${parsedUrl.host}`;
+        console.log(`[DEBUG] Starting proxy for project ${project.name} (${project.id})`);
+        console.log(`[DEBUG] Target: ${targetOrigin}`);
+        console.log(`[DEBUG] Port: ${project.port}`);
         return new Promise((resolve) => {
-            const app = (0, express_1.default)();
-            app.use((req, res, next) => {
-                res.setHeader('Access-Control-Allow-Origin', '*');
-                res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-                res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-                if (req.method === 'OPTIONS') {
-                    return res.sendStatus(200);
-                }
-                next();
-            });
-            const proxyOptions = {
-                target: project.destination,
-                changeOrigin: true,
-                secure: false,
-                ws: true,
-            };
-            const proxy = (0, http_proxy_middleware_1.createProxyMiddleware)(proxyOptions);
-            app.use('/', proxy);
-            const server = http.createServer(app).listen(project.port, () => {
-                this.proxyServers.set(project.id, { server, projectId: project.id });
-                console.log(`Proxy server started for project ${project.name} on port ${project.port}`);
-                resolve(true);
-            });
-            server.on('error', (err) => {
-                console.error(`Failed to start proxy on port ${project.port}:`, err);
+            try {
+                const app = (0, express_1.default)();
+                app.use(express_1.default.json({ limit: '50mb' }));
+                app.use(express_1.default.urlencoded({ extended: true, limit: '50mb' }));
+                app.use((req, res, next) => {
+                    res.setHeader('Access-Control-Allow-Origin', '*');
+                    res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, POST, PUT, DELETE, OPTIONS, PATCH');
+                    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+                    res.setHeader('Access-Control-Expose-Headers', '*');
+                    if (req.method === 'OPTIONS') {
+                        return res.sendStatus(200);
+                    }
+                    next();
+                });
+                const proxyOptions = {
+                    target: targetOrigin,
+                    changeOrigin: true,
+                    secure: false,
+                    ws: true,
+                };
+                console.log(`[DEBUG] Creating proxy middleware with options:`, JSON.stringify(proxyOptions));
+                const proxy = (0, http_proxy_middleware_1.createProxyMiddleware)(proxyOptions);
+                console.log(`[DEBUG] Proxy middleware created successfully`);
+                app.use(proxy);
+                console.log(`[DEBUG] Proxy middleware attached to app`);
+                const server = http.createServer(app);
+                console.log(`[DEBUG] HTTP server created`);
+                server.on('upgrade', (req, socket, head) => {
+                    proxy.upgrade(req, socket, head);
+                });
+                console.log(`[DEBUG] WebSocket upgrade handler attached`);
+                server.listen(project.port, () => {
+                    console.log(`[DEBUG] Server.listen callback triggered`);
+                    this.proxyServers.set(project.id, { server, projectId: project.id });
+                    console.log(`Proxy server started for project ${project.name} (ID: ${project.id}) on port ${project.port}`);
+                    console.log(`Target destination: ${targetOrigin}`);
+                    resolve(true);
+                });
+                server.on('error', (err) => {
+                    console.error(`[ERROR] Failed to start proxy on port ${project.port}:`, err.message);
+                    console.error(`[ERROR] Error stack:`, err.stack);
+                    resolve(false);
+                });
+                server.on('close', () => {
+                    this.proxyServers.delete(project.id);
+                    console.log(`Proxy server closed for project ${project.name} (ID: ${project.id})`);
+                });
+                console.log(`[DEBUG] Server setup complete, waiting for listen...`);
+            }
+            catch (error) {
+                console.error(`[EXCEPTION] Unexpected error in startProxy:`, error);
                 resolve(false);
-            });
+            }
         });
     }
     async stopProxy(projectId) {

@@ -27,6 +27,7 @@ import {
   startAction,
   stopAction,
   restartAction,
+  switchConfig,
 } from '../api/project';
 
 const { Title } = Typography;
@@ -58,19 +59,35 @@ const ProxyList = () => {
     },
     {
       title: '配置文件',
-      dataIndex: 'config',
+      dataIndex: 'configs',
       key: 'config',
       width: 200,
-      render: (text) => (
-        <Select
-          value={text}
-          style={{ width: '100%' }}
-          onChange={(value) => handleConfigChange(value)}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Option value={text}>{text}</Option>
-        </Select>
-      ),
+      render: (configs, record) => {
+        const subConfigs = configs && configs.length > 0
+          ? configs
+          : record.destination
+            ? [{ targetAddress: record.destination, headers: {} }]
+            : [];
+
+        if (subConfigs.length === 0) {
+          return <span style={{ color: '#999' }}>无配置</span>;
+        }
+
+        return (
+          <Select
+            value={record.destination || subConfigs[0]?.targetAddress}
+            style={{ width: '100%' }}
+            onChange={(value) => handleConfigChange(record, value)}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {subConfigs.map((cfg, index) => (
+              <Option key={index} value={cfg.targetAddress}>
+                {cfg.targetAddress || `子配置 ${index + 1}`}
+              </Option>
+            ))}
+          </Select>
+        );
+      },
     },
     {
       title: '地址',
@@ -192,8 +209,36 @@ const ProxyList = () => {
     loadProjectList();
   }, [location.pathname]);
 
-  const handleConfigChange = (value) => {
-    message.success('配置已更新');
+  const handleConfigChange = async (record, newDestination) => {
+    if (newDestination === record.destination) {
+      return;
+    }
+
+    try {
+      const response = await switchConfig({
+        id: record.id,
+        destination: newDestination,
+      });
+
+      if (response.code === 0) {
+        setData((prevData) =>
+          prevData.map((item) =>
+            item.id === record.id ? { ...item, destination: newDestination } : item
+          )
+        );
+
+        if (record.status === 'running') {
+          message.warning('配置已切换，请点击重启按钮使新配置生效');
+        } else {
+          message.warning('配置已切换，请点击启动按钮使新配置生效');
+        }
+      } else {
+        message.error('配置切换失败');
+      }
+    } catch (error) {
+      message.error('配置切换失败');
+      console.error(error);
+    }
   };
 
   const handleToggleStatus = async (record) => {
