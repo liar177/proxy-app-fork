@@ -20,6 +20,7 @@ exports.ProjectModule = ProjectModule = __decorate([
         imports: [storage_module_1.StorageModule, proxy_module_1.ProxyModule],
         controllers: [project_controller_1.ProjectController],
         providers: [project_service_1.ProjectService],
+        exports: [project_service_1.ProjectService],
     })
 ], ProjectModule);
 //# sourceMappingURL=project.module.js.map

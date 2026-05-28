@@ -8,5 +8,6 @@ import { ProxyModule } from '../proxy/proxy.module';
   imports: [StorageModule, ProxyModule],
   controllers: [ProjectController],
   providers: [ProjectService],
+  exports: [ProjectService],
 })
 export class ProjectModule {}

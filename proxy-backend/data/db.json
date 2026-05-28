@@ -1,25 +1,20 @@
 {
   "projects": [
     {
-      "name": "TodoProxyTest",
-      "port": 8899,
-      "description": "1111111111111测试",
-      "destination": "http://localhost:3001",
-      "config": "????????",
+      "name": "test-mcp-project",
+      "port": 18080,
+      "description": "MCP�����Ĳ�����Ŀ",
+      "destination": "https://httpbin.org",
+      "config": "MCP�����Ĳ�����Ŀ",
       "configs": [
         {
-          "targetAddress": "http://localhost:3001"
-        },
-        {
-          "targetAddress": "http://localhost:3003/",
-          "headers": {
-            "cookie": ""
-          }
+          "targetAddress": "https://httpbin.org",
+          "headers": {}
         }
       ],
-      "address": "http://localhost:8899",
-      "status": "running",
-      "id": 1
+      "address": "http://localhost:18080",
+      "status": "stopped",
+      "id": 2
     }
   ]
 }

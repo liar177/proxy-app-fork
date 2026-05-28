@@ -13,15 +13,22 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@nestjs/common": "^11.1.21",
     "@nestjs/core": "^11.1.21",
+    "@nestjs/jwt": "^11.0.2",
+    "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.21",
     "@nestjs/serve-static": "^4.0.2",
+    "@rekog/mcp-nest": "^1.9.10",
     "@types/node": "^25.9.0",
     "http-proxy-middleware": "^3.0.5",
+    "jsonwebtoken": "^9.0.3",
     "lowdb": "^7.0.1",
+    "passport": "^0.7.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.21",
