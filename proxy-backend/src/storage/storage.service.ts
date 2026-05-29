@@ -31,7 +31,13 @@ export class StorageService implements OnModuleInit {
   private db: Low<Database>;
 
   async onModuleInit() {
-    const dbPath = join(__dirname, '..', '..', 'data', 'db.json');
+    const dataDir = process.env.DATA_DIR
+      || join(__dirname, '..', '..', 'data');
+    const dbPath = join(dataDir, 'db.json');
+
+    const fs = await import('fs/promises');
+    await fs.mkdir(dataDir, { recursive: true });
+
     this.db = new Low(new JSONFile(dbPath), defaultData);
     await this.db.read();
     

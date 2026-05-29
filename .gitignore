@@ -1,5 +1,8 @@
 proxy-backend/node_modules/
 proxy-ui/node_modules/
+proxy-backend/public/
+proxy-backend/release/
+proxy-backend/dist/
 
 test-todo-backend/node_modules/
 test-todo-backend-2/node_modules/

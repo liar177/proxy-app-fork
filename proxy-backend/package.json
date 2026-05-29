@@ -1,12 +1,17 @@
 {
   "name": "proxy-backend",
   "version": "1.0.0",
-  "main": "dist/main.js",
+  "main": "electron/main.js",
   "scripts": {
+    "build:ui": "node scripts/copy-ui.cjs",
+    "build:backend": "node -e \"const fs=require('fs');try{fs.rmSync('tsconfig.tsbuildinfo')}catch(e){}\" && nest build && node -e \"const fs=require('fs');fs.rmSync('dist/public',{recursive:true,force:true});fs.cpSync('public','dist/public',{recursive:true})\"",
+    "build:full": "npm run build:ui && npm run build:backend",
     "start": "nest start",
     "start:dev": "nest start --watch",
-    "build": "nest build",
-    "start:prod": "node dist/main"
+    "start:prod": "node dist/main",
+    "pack": "npm run build:full && electron-builder --win portable",
+    "dist": "npm run build:full && electron-builder --win",
+    "electron:dev": "npm run build:full && electron ."
   },
   "keywords": [],
   "author": "",
@@ -33,7 +38,38 @@
   "devDependencies": {
     "@nestjs/cli": "^11.0.21",
     "@types/express": "^5.0.6",
+    "electron": "^42.3.0",
+    "electron-builder": "^26.8.1",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3"
+  },
+  "build": {
+    "appId": "com.easy-proxy.app",
+    "productName": "Easy Proxy",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "asar": true
   }
 }
