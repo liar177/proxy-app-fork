@@ -15,6 +15,85 @@
       "address": "http://localhost:18080",
       "status": "stopped",
       "id": 2
+    },
+    {
+      "name": "蟹黄堡小助手",
+      "port": 13139,
+      "description": "新增一条看看服务是否正常",
+      "destination": "http://localhost:8899",
+      "config": "新增一条看看服务是否正常",
+      "configs": [
+        {
+          "targetAddress": "http://localhost:8899",
+          "headers": {
+            "cookie": "1"
+          }
+        }
+      ],
+      "address": "http://localhost:13139",
+      "status": "stopped",
+      "id": 3
+    },
+    {
+      "name": "mcp-demo-project",
+      "port": 10087,
+      "description": "ͨ�� MCP �������ӵ���Ŀ",
+      "destination": "http://localhost:4000",
+      "config": "ͨ�� MCP �������ӵ���Ŀ",
+      "configs": [
+        {
+          "targetAddress": "http://localhost:4000"
+        }
+      ],
+      "address": "http://localhost:10087",
+      "status": "stopped",
+      "id": 4
+    },
+    {
+      "name": "mcp-protocol-project",
+      "port": 10088,
+      "description": "ֱ��ͨ�� MCP Э������",
+      "destination": "http://localhost:5000",
+      "config": "ֱ��ͨ�� MCP Э������",
+      "configs": [
+        {
+          "targetAddress": "http://localhost:5000"
+        }
+      ],
+      "address": "http://localhost:10088",
+      "status": "stopped",
+      "id": 5
+    },
+    {
+      "name": "Claude�����Ĵ���",
+      "port": 18090,
+      "description": "ͨ��Claude MCP�������´�����Ŀ",
+      "destination": "http://localhost:5173",
+      "config": "ͨ��Claude MCP�������´�����Ŀ",
+      "configs": [
+        {
+          "targetAddress": "http://localhost:5173"
+        }
+      ],
+      "address": "http://localhost:18090",
+      "status": "stopped",
+      "id": 6
+    },
+    {
+      "name": "liar177�ĺ�̨����",
+      "port": 15000,
+      "description": "liar177�ĺ�̨����",
+      "destination": "http://10.42.2.36:8859",
+      "config": "liar177�ĺ�̨����",
+      "configs": [
+        {
+          "targetAddress": "http://10.42.2.36:8859",
+          "headers": {}
+        }
+      ],
+      "address": "http://localhost:15000",
+      "status": "running",
+      "id": 7
     }
   ]
 }

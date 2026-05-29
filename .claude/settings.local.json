@@ -14,7 +14,15 @@
       "Bash(kill %1)",
       "Bash(pkill -f \"node dist/main.js\")",
       "Bash(pkill -f \"node.*proxy\")",
-      "WebSearch"
+      "WebSearch",
+      "Bash(npm run *)",
+      "Bash(curl *)",
+      "Bash(wmic process *)",
+      "Bash(claude --version)",
+      "Bash(claude version *)",
+      "Bash(npx @anthropic-ai/claude-code --version)"
     ]
-  }
+  },
+  "autoUpdate": false,
+  "autoUpdateInterval": 0
 }
