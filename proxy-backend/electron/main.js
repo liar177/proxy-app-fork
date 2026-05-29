@@ -2,12 +2,34 @@ const { app, BrowserWindow } = require('electron');
 const { fork } = require('child_process');
 const path = require('path');
 const http = require('http');
+const net = require('net');
 
 let serverProcess = null;
 let mainWindow = null;
-const PORT = parseInt(process.env.PROXY_APP_PORT, 10) || 3000;
+const BASE_PORT = parseInt(process.env.PROXY_APP_PORT, 10) || 3000;
 
-function startServer() {
+function isPortAvailable(port) {
+  return new Promise((resolve) => {
+    const server = net.createServer();
+    server.once('error', () => resolve(false));
+    server.once('listening', () => {
+      server.close();
+      resolve(true);
+    });
+    server.listen(port, '127.0.0.1');
+  });
+}
+
+async function findAvailablePort(startPort) {
+  for (let port = startPort; port < startPort + 100; port++) {
+    if (await isPortAvailable(port)) {
+      return port;
+    }
+  }
+  throw new Error('No available port found');
+}
+
+function startServer(port) {
   return new Promise((resolve, reject) => {
     const serverPath = path.join(__dirname, '..', 'dist', 'main.js');
     const dataDir = path.join(app.getPath('userData'), 'data');
@@ -15,7 +37,7 @@ function startServer() {
     serverProcess = fork(serverPath, [], {
       env: {
         ...process.env,
-        PROXY_APP_PORT: String(PORT),
+        PROXY_APP_PORT: String(port),
         DATA_DIR: dataDir,
         NODE_ENV: 'production',
       },
@@ -35,16 +57,15 @@ function startServer() {
       serverProcess = null;
     });
 
-    // 轮询等待服务就绪
     let retries = 0;
     const check = () => {
       retries++;
-      http.get(`http://127.0.0.1:${PORT}/api-proxy/project/list`, () => resolve())
+      http.get(`http://127.0.0.1:${port}/api-proxy/project/list`, () => resolve())
         .on('error', () => {
           if (retries < 30) {
             setTimeout(check, 500);
           } else {
-            reject(new Error(`NestJS server did not start on port ${PORT} within timeout`));
+            reject(new Error(`NestJS server did not start on port ${port} within timeout`));
           }
         });
     };
@@ -52,7 +73,7 @@ function startServer() {
   });
 }
 
-function createWindow() {
+function createWindow(port) {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -68,7 +89,7 @@ function createWindow() {
   });
 
   mainWindow.setMenuBarVisibility(false);
-  mainWindow.loadURL(`http://127.0.0.1:${PORT}`);
+  mainWindow.loadURL(`http://127.0.0.1:${port}`);
 
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -77,10 +98,12 @@ function createWindow() {
 
 app.whenReady().then(async () => {
   try {
-    console.log('Starting NestJS server...');
-    await startServer();
+    console.log('Finding available port...');
+    const port = await findAvailablePort(BASE_PORT);
+    console.log(`Starting NestJS server on port ${port}...`);
+    await startServer(port);
     console.log('NestJS server is ready.');
-    createWindow();
+    createWindow(port);
   } catch (err) {
     console.error('Failed to start application:', err);
     app.quit();
