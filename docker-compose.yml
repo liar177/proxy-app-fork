@@ -1,0 +1,11 @@
+services:
+  # 可复现构建服务 — 编译 proxy-ui + proxy-backend
+  builder:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: easy-proxy-builder:latest
+    # builder 是一次性构建容器，不需要 up/run
+    # 使用方式：
+    #   docker compose build builder
+    #   docker compose run --rm builder echo "Build done"

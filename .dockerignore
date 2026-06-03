@@ -1,0 +1,41 @@
+# Dependencies
+**/node_modules/
+
+# Build outputs (会从 Docker 容器中重新生成)
+proxy-ui/dist/
+proxy-backend/dist/
+proxy-backend/release/
+proxy-backend/public/
+
+# IDE & OS
+.vscode/
+.idea/
+*.swp
+*.swo
+Thumbs.db
+Desktop.ini
+
+# Git
+.git/
+.gitignore
+
+# Temp
+*.log
+*.tmp
+proxy-backend/tsconfig.tsbuildinfo
+
+# Project docs (build 不需要)
+proxy-app项目prompt.md
+proxy-app-obsidian/
+proxy-app-onenote/
+.trae/
+mcp-test-plan.md
+测试说明.md
+*.png
+
+# Test projects
+test-todo-backend/
+test-todo-backend-2/
+test-todo-frontend/
+test-proxy.js
+test-server.js
